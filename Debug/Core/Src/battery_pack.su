@@ -1,0 +1,2 @@
+battery_pack.c:9:6:BqPack_StructInit	16	static
+battery_pack.c:19:6:BqPack_StructUpdate	40	static

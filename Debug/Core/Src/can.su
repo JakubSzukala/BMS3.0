@@ -1,0 +1,12 @@
+can.c:57:6:MX_CAN_Init	8	static
+can.c:89:6:HAL_CAN_MspInit	48	static
+can.c:133:6:HAL_CAN_MspDeInit	16	static
+can.c:171:6:CanInit	8	static
+can.c:187:6:CanSaveReceivedData	8	static
+can.c:206:6:CanConfigFilter	8	static
+can.c:236:6:CanSendSync	8	static
+can.c:262:6:CanSendNmt	8	static
+can.c:292:6:CanSendPdo	8	static
+can.c:332:6:CanSendSdo	8	static
+can.c:368:6:CanClearTxDataFrame	16	static
+can.c:386:6:CanClearRxDataFrame	16	static
