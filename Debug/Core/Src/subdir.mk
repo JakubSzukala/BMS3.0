@@ -8,6 +8,7 @@ C_SRCS += \
 ../Core/Src/battery_pack.c \
 ../Core/Src/can.c \
 ../Core/Src/current_sensor.c \
+../Core/Src/fifo_buffer.c \
 ../Core/Src/gpio.c \
 ../Core/Src/main.c \
 ../Core/Src/stm32f1xx_hal_msp.c \
@@ -22,6 +23,7 @@ OBJS += \
 ./Core/Src/battery_pack.o \
 ./Core/Src/can.o \
 ./Core/Src/current_sensor.o \
+./Core/Src/fifo_buffer.o \
 ./Core/Src/gpio.o \
 ./Core/Src/main.o \
 ./Core/Src/stm32f1xx_hal_msp.o \
@@ -36,6 +38,7 @@ C_DEPS += \
 ./Core/Src/battery_pack.d \
 ./Core/Src/can.d \
 ./Core/Src/current_sensor.d \
+./Core/Src/fifo_buffer.d \
 ./Core/Src/gpio.d \
 ./Core/Src/main.d \
 ./Core/Src/stm32f1xx_hal_msp.d \

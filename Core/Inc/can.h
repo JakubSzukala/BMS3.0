@@ -79,7 +79,7 @@ void CanClearRxDataFrame(CanDataFrameInit *ptr_can_frame_template);
 void CanSendSync(CAN_HandleTypeDef hcanx, CanDataFrameInit *can_frame_template);
 void CanSendNmt(CAN_HandleTypeDef hcanx, uint8_t state, uint8_t node_id,
 		CanDataFrameInit *can_frame_template);
-void CanSendPdo(CAN_HandleTypeDef chosen_network, uint8_t frame_pdo_id,
+void CanSendPdo(CAN_HandleTypeDef chosen_network, uint32_t frame_pdo_id,
 		uint8_t number_of_bytes, CanDataFrameInit *can_frame_template,
 		uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3,
 		uint8_t byte4, uint8_t byte5, uint8_t byte6, uint8_t byte7);

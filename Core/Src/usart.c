@@ -23,6 +23,7 @@
 /* USER CODE BEGIN 0 */
 #include "current_sensor.h"
 #include "battery_pack.h"
+#include "fifo_buffer.h"
 
 char rx_buffer[128] = "";
 
@@ -57,7 +58,7 @@ void MX_USART1_UART_Init(void)
   }
   /* USER CODE BEGIN USART1_Init 2 */
   // Immediately start receiving
-  HAL_UART_Receive_IT(&huart1, (uint8_t*)rx_buffer, sizeof(rx_buffer));
+  //HAL_UART_Receive_IT(&huart1, (uint8_t*)rx_buffer, sizeof(rx_buffer));
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -90,7 +91,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* USART1 interrupt Init */
-    HAL_NVIC_SetPriority(USART1_IRQn, 2, 0);
+    HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
   /* USER CODE BEGIN USART1_MspInit 1 */
 
@@ -133,12 +134,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		BqPack_StructUpdate_CurrSensor(&battery_pack, &current_data);
 		BqPack_RecalculateData(&battery_pack);
 
-		/* Check for errors and send message about them */
 		BqPack_CheckForErrors(&battery_pack);
-
-		/* Create a frame based on that*/
-
-		/* Send a frame */
+		BqPack_CheckForWarnings(&battery_pack);
+		uint8_t data[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+//		frame_to_send tx_frame = { 0x127, data};
+//		Queue_AddTxCanMessage(&Fifo_Queue, &tx_frame);
 
 		/* Restart Uart */
 		HAL_UART_Receive_IT(&huart1, (uint8_t*)rx_buffer, sizeof(rx_buffer));

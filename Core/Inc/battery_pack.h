@@ -52,7 +52,9 @@ typedef struct BQ_PACK
 	uint16_t lowest_cell_volts;
 	uint16_t highest_cell_volts;
 	uint8_t op_mode;
-	uint8_t pack_status;
+
+	uint16_t warnings;
+	uint16_t error;
 
 	uint32_t current;
 
@@ -62,7 +64,7 @@ typedef struct BQ_PACK
 }bq_pack;
 
 extern bq_pack battery_pack;
-
+extern uint8_t error_flag;
 /* Functions declarations */
 /* Structure updates */
 void BqPack_StructInit(bq_pack *pack);
@@ -71,11 +73,14 @@ void BqPack_StructUpdate_MSP430(bq_pack *pack, char *control);
 void BqPack_RecalculateData(bq_pack *pack);
 
 /* Error checking */
-void BqPack_CheckForErrors(bq_pack *pack);
+uint8_t BqPack_CheckForErrors(bq_pack *pack);
+void BqPack_CheckForWarnings(bq_pack *pack);
 BqPack_Error_Status VoltageErrorCheck(uint32_t *voltage);
 BqPack_Error_Status TemperatureErrorCheck(uint16_t *t1, uint16_t *t2);
 BqPack_Error_Status VoltageDiffErrorCheck(uint16_t *voltage1, uint16_t *voltage2);
-
+uint8_t VoltageWarningCheck(uint32_t *voltage);
+uint8_t TemperatureWarningCheck(uint16_t *t1, uint16_t *t2);
+uint8_t VoltageDiffWarningCheck(uint16_t *voltage1, uint16_t *voltage2);
 
 void check_warning_error_conditions(bq_pack *pack);
 void CAN_comm(bq_pack *pack); // when errors present change message type

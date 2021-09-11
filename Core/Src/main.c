@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "battery_pack.h"
+#include "fifo_buffer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,25 +97,39 @@ int main(void)
   MX_CAN_Init();
   MX_USART1_UART_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   CanConfigFilter(hcan, 0, 0x0000, 0x0000, 0x0000, 0x0000);
   CanInit(hcan);
 
   BqPack_StructInit(&battery_pack);
   /* Start the timer */
+  HAL_TIM_Base_Start_IT(&htim1);
   HAL_TIM_Base_Start_IT(&htim2);
 
-  /* Start receiving data from MSP430 */
+  Queue_Init();
 
+  /* Start receiving data from MSP430 */
+  uint8_t data[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+  	frame_to_send tx_frame;
+  	tx_frame.tx_data[0] = data[0];
+  	tx_frame.tx_data[1] = data[1];
+  	tx_frame.tx_data[2] = data[2];
+  	tx_frame.tx_data[3] = data[3];
+  	tx_frame.tx_data[4] = data[4];
+  	tx_frame.tx_data[5] = data[5];
+  	tx_frame.tx_data[6] = data[6];
+  	tx_frame.tx_data[7] = data[7];
+  	tx_frame.tx_header = 0x127;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  CanSendPdo(hcan, 0x127, 8, &can_frame_template, 0x13, 0xBB, 0x20, 0x16, 0, 0, 0, 0);
-	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-	  HAL_Delay(500);
+	Queue_AddTxCanMessage(&tx_frame);
+	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

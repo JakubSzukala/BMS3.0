@@ -1,6 +1,7 @@
 "./Core/Src/battery_pack.o"
 "./Core/Src/can.o"
 "./Core/Src/current_sensor.o"
+"./Core/Src/fifo_buffer.o"
 "./Core/Src/gpio.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32f1xx_hal_msp.o"

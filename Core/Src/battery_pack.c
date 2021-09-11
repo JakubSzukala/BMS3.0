@@ -4,9 +4,17 @@
  *  Created on: Sep 7, 2021
  *      Author: bursk
  */
+#include <math.h>
+
 #include "battery_pack.h"
+#include "fifo_buffer.h"
+
 
 CanDataFrameInit can_frame_template;
+
+/* Global variables */
+queue_t Fifo_Queue;
+uint8_t error_flag;
 
 void BqPack_StructInit(bq_pack *pack)
 {
@@ -97,49 +105,37 @@ void BqPack_StructUpdate_MSP430(bq_pack *pack, char *control)
 	}
 }
 
-void BqPack_CheckForErrors(bq_pack *pack)
+uint8_t BqPack_CheckForErrors(bq_pack *pack)
 {
-	BqPack_Error_Status status;
-	status = VoltageErrorCheck(&(pack->voltage));
-	if(status != BqPack_OK)
+	error_flag = VoltageErrorCheck(&(pack->voltage));
+	if(error_flag != BqPack_OK)
 	{
-		CanSendPdo(hcan,
-				0x85,
-				8,
-				&can_frame_template,
-				status, 0, 0, 0, 0, 0, 0, 0);
-		CanClearTxDataFrame(&can_frame_template);
+		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error_flag, (uint8_t)((pack->voltage)/1000), 0, 0, 0, 0, 0, 0);
+		return error_flag;
 	}
 
-	status = TemperatureErrorCheck(&(pack->temperature1), &(pack->temperature2));
-	if(status != BqPack_OK)
+	error_flag = TemperatureErrorCheck(&pack->temperature1, &pack->temperature2);
+	if(error_flag != BqPack_OK)
 	{
-		CanSendPdo(hcan,
-				0x85,
-				8,
-				&can_frame_template,
-				status, 0, 0, 0, 0, 0, 0, 0);
-		CanClearTxDataFrame(&can_frame_template);
+		uint8_t htemp = (pack->temperature1 > pack->temperature2) ? pack->temperature1 : pack->temperature2;
+		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error_flag, (uint8_t)htemp + 30, 0, 0, 0, 0, 0, 0);
+		return error_flag;
 	}
 
-	status = VoltageDiffErrorCheck(&(pack->highest_cell_volts), &(pack->lowest_cell_volts));
-	if(status != BqPack_OK)
+	error_flag = VoltageDiffErrorCheck(&pack->highest_cell_volts, &pack->lowest_cell_volts);
+	if(error_flag != BqPack_OK)
 	{
-		CanSendPdo(hcan,
-				0x85,
-				8,
-				&can_frame_template,
-				status, 0, 0, 0, 0, 0, 0, 0);
-		CanClearTxDataFrame(&can_frame_template);
+		uint8_t volt_diff = abs(pack->highest_cell_volts - pack->lowest_cell_volts);
+		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error_flag, volt_diff, 0, 0, 0, 0, 0, 0);
+		return error_flag;
 	}
+	return error_flag;
 }
 
 BqPack_Error_Status VoltageErrorCheck(uint32_t *voltage)
 {
 	if(*voltage > OVERVOLTAGE_ERR) 		return BqPack_ErrOV;
 	if(*voltage < UNDERVOLTAGE_ERR) 	return BqPack_ErrUV;
-	if(*voltage > OVERVOLTAGE_WARN)		return BqPack_WarOV;
-	if(*voltage < UNDERVOLTAGE_WARN)	return BqPack_WarUV;
 
 	return BqPack_OK;
 }
@@ -148,8 +144,6 @@ BqPack_Error_Status TemperatureErrorCheck(uint16_t *t1, uint16_t *t2)
 {
 	if(*t1 > HIGHTEMP_ERR || *t2 > HIGHTEMP_ERR) 	return BqPack_ErrHT;
 	if(*t1 < LOWTEMP_ERR || *t2 < LOWTEMP_ERR) 		return BqPack_ErrLT;
-	if(*t1 > HIGHTEMP_WARN || *t2 > HIGHTEMP_WARN) 	return BqPack_WarHT;
-	if(*t1 < LOWTEMP_WARN || *t2 < LOWTEMP_WARN) 	return BqPack_WarLT;
 
 	return BqPack_OK;
 }
@@ -157,7 +151,43 @@ BqPack_Error_Status TemperatureErrorCheck(uint16_t *t1, uint16_t *t2)
 BqPack_Error_Status VoltageDiffErrorCheck(uint16_t *voltage1, uint16_t *voltage2)
 {
 	if(abs(*voltage1 - *voltage2) > BAL_ERR) 	return BqPack_ErrBal;
-	if(abs(*voltage1 - *voltage2) > BAL_WARN) 	return BqPack_WarBal;
 
 	return BqPack_OK;
 }
+/*************************************************************************************/
+void BqPack_CheckForWarnings(bq_pack *pack)
+{
+	pack->warnings += VoltageWarningCheck(&pack->voltage);
+	pack->warnings += TemperatureWarningCheck(&pack->temperature1, &pack->temperature2);
+	pack->warnings += VoltageDiffErrorCheck(&pack->highest_cell_volts, &pack->lowest_cell_volts);
+
+	if(pack->warnings != 0)
+	{
+		uint8_t htemp = (pack->temperature1 > pack->temperature2) ? pack->temperature1 : pack->temperature2;
+		uint8_t volt_diff = abs(pack->highest_cell_volts - pack->lowest_cell_volts);
+		CanSendPdo(hcan, 0x86, 8, &can_frame_template, pack->warnings, (uint8_t)(pack->voltage/1000), htemp, volt_diff, 0, 0, 0, 0);
+	}
+
+}
+
+uint8_t VoltageWarningCheck(uint32_t *voltage)
+{
+	if(*voltage > OVERVOLTAGE_WARN)		return pow(2, 0);
+	if(*voltage < UNDERVOLTAGE_WARN)	return pow(2, 1);
+	return 0;
+}
+
+uint8_t TemperatureWarningCheck(uint16_t *t1, uint16_t *t2)
+{
+	if(*t1 > HIGHTEMP_WARN || *t2 > HIGHTEMP_WARN) 	return pow(2, 2);
+	if(*t1 < LOWTEMP_WARN || *t2 < LOWTEMP_WARN) 	return pow(2, 3);
+	return 0;
+}
+
+uint8_t VoltageDiffWarningCheck(uint16_t *voltage1, uint16_t *voltage2)
+{
+	if(abs(*voltage1 - *voltage2) > BAL_WARN) 	return pow(2, 4);
+	return 0;
+}
+
+
