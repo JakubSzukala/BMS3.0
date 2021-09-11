@@ -57,6 +57,10 @@ typedef struct {
 	uint8_t rx_data[8];
 } CanDataFrameInit;
 
+// create an instance of that in init function
+typedef void (*pt2SendFunctions)(void);
+extern pt2SendFunctions send_functions[7]; // + stop timer function
+
 extern CanDataFrameInit can_frame_template;
 extern CanDataFrameInit can_rx_frame_template;
 
@@ -87,6 +91,13 @@ void CanSendSdo(CAN_HandleTypeDef chosen_network, uint8_t frame_sdo_id,
 		CanDataFrameInit *ptr_can_frame_template, uint8_t number_of_bytes,
 		uint8_t command_byte, uint8_t byte0, uint8_t byte1, uint8_t byte2,
 		uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6);
+
+/* Basic frames send functions */
+void SendCellVoltages1_8();
+void SendCellVoltages9_16();
+void SendCellVoltages17_24();
+void SendCellVoltages25_28();
+void SendCellVoltagePackCurrent();
 
 /* USER CODE END Private defines */
 

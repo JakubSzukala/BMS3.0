@@ -53,6 +53,8 @@ typedef struct BQ_PACK
 	uint16_t highest_cell_volts;
 	uint8_t op_mode;
 
+	uint16_t cell_voltages[29];
+
 	uint16_t warnings;
 	uint16_t error;
 
@@ -81,6 +83,7 @@ BqPack_Error_Status VoltageDiffErrorCheck(uint16_t *voltage1, uint16_t *voltage2
 uint8_t VoltageWarningCheck(uint32_t *voltage);
 uint8_t TemperatureWarningCheck(uint16_t *t1, uint16_t *t2);
 uint8_t VoltageDiffWarningCheck(uint16_t *voltage1, uint16_t *voltage2);
+
 
 void check_warning_error_conditions(bq_pack *pack);
 void CAN_comm(bq_pack *pack); // when errors present change message type

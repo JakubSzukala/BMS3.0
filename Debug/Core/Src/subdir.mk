@@ -5,6 +5,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/adc.c \
 ../Core/Src/battery_pack.c \
 ../Core/Src/can.c \
 ../Core/Src/current_sensor.c \
@@ -20,6 +21,7 @@ C_SRCS += \
 ../Core/Src/usart.c 
 
 OBJS += \
+./Core/Src/adc.o \
 ./Core/Src/battery_pack.o \
 ./Core/Src/can.o \
 ./Core/Src/current_sensor.o \
@@ -35,6 +37,7 @@ OBJS += \
 ./Core/Src/usart.o 
 
 C_DEPS += \
+./Core/Src/adc.d \
 ./Core/Src/battery_pack.d \
 ./Core/Src/can.d \
 ./Core/Src/current_sensor.d \

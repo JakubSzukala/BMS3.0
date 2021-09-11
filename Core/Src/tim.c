@@ -184,14 +184,15 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 /* USER CODE BEGIN 1 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	if(htim->Instance == TIM1)
+	{
+		//Queue_TxCanMessage();
+		// Send can frames to ECM
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	}
 	if(htim->Instance == TIM2)
 	{
 		HAL_UART_Transmit_IT(&huart1, (uint8_t*)"rqst\r", 5);
-	}
-	if(htim->Instance == TIM1)
-	{
-		Queue_TxCanMessage();
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 	}
 }
 

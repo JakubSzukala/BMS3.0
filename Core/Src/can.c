@@ -79,7 +79,14 @@ void MX_CAN_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN_Init 2 */
+  //void (*ptr2func)(void) =
+  send_functions[0] = &SendCellVoltages1_8;
+  send_functions[1] = &SendCellVoltages9_16;
+  send_functions[2] = &SendCellVoltages17_24;
+  send_functions[3] = &SendCellVoltages25_28;
+  send_functions[4] = &SendCellVoltagePackCurrent;
 
+  // __HAL_TIM_DISABLE(htim);
   /* USER CODE END CAN_Init 2 */
 
 }
@@ -392,13 +399,39 @@ void CanClearRxDataFrame(CanDataFrameInit *ptr_can_frame_template) {
 	ptr_can_frame_template->rx_data[7] = 0x0;
 }
 /* Interrupt callbacks*/
-//HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-//{
-//	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-//	CanClearRxDataFrame(&can_rx_frame_template);
-//	CanSaveReceivedData(*hcan, &can_rx_frame_template);
-//	GetRawData(&current_data, &can_rx_frame_template);
-//}
+HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	CanClearRxDataFrame(&can_rx_frame_template);
+	CanSaveReceivedData(*hcan, &can_rx_frame_template);
+	GetRawData(&current_data, &can_rx_frame_template);
+}
+
+void SendCellVoltages1_8()
+{
+
+}
+void SendCellVoltages9_16()
+{
+
+}
+void SendCellVoltages17_24()
+{
+
+}
+void SendCellVoltages25_28()
+{
+
+}
+void SendCellVoltagePackCurrent()
+{
+
+}
+
 /* USER CODE END 1 */
+
+/* Send functions */
+
+
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
