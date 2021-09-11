@@ -11,10 +11,14 @@
 #include "stm32f1xx.h"
 #include "can.h"
 
+
 typedef struct{
 	CAN_RxHeaderTypeDef rx_header;
 	uint32_t current;
 }CurrentData;
+
+/* Global variable for storing current sensor data */
+extern CurrentData current_data;
 
 void GetRawData(CurrentData *current, CanDataFrameInit *can_frame);
 

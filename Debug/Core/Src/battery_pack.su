@@ -1,2 +1,8 @@
-battery_pack.c:9:6:BqPack_StructInit	16	static
-battery_pack.c:19:6:BqPack_StructUpdate	40	static
+battery_pack.c:11:6:BqPack_StructInit	16	static
+battery_pack.c:21:6:BqPack_StructUpdate_CurrSensor	16	static
+battery_pack.c:27:6:BqPack_RecalculateData	16	static
+battery_pack.c:35:6:BqPack_StructUpdate_MSP430	40	static
+battery_pack.c:100:6:BqPack_CheckForErrors	112	static
+battery_pack.c:126:21:VoltageErrorCheck	16	static
+battery_pack.c:136:21:TemperatureErrorCheck	16	static
+battery_pack.c:146:21:VoltageDiffErrorCheck	16	static

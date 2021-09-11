@@ -6,7 +6,7 @@
  */
 
 #include "current_sensor.h"
-
+#include "can.h"
 
 void GetRawData(CurrentData *current_data, CanDataFrameInit *can_rx_frame){
 	current_data->rx_header = can_rx_frame->rx_header;

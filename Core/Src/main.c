@@ -26,7 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "battery_pack.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +47,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+bq_pack battery_pack;
 
 /* USER CODE END PV */
 
@@ -112,7 +112,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_UART_Transmit(&huart1, "rqst\r", 5, 100);
 	  CanSendPdo(hcan, 0x127, 8, &can_frame_template, 0x13, 0xBB, 0x20, 0x16, 0, 0, 0, 0);
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 	  HAL_Delay(500);

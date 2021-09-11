@@ -33,7 +33,7 @@ CanDataFrameInit can_rx_frame_template;
 uint32_t can_tx_mailbox;
 
 /* Includes */
-#include "current_sensor.h"
+//#include "current_sensor.h"
 
 /* Variables */
 //CanDataFrameInit can_frame_template;
@@ -46,8 +46,6 @@ CAN_TxHeaderTypeDef can_tx_header;
 //uint32_t TxMailbox;
 //CanDataFrameInit can_rx_frame_template;
 //uint32_t can_tx_mailbox;
-
-CurrentData current_data;
 
 /* USER CODE END 0 */
 

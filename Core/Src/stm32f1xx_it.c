@@ -27,6 +27,7 @@
  INCLUDES
  ************************************************************************************************/
 #include "can.h"
+#include "current_sensor.h"
 
 /* USER CODE END Includes */
 
@@ -48,6 +49,9 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+/* Global variable for storing current sensor data */
+CurrentData current_data;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,6 +66,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan;
+extern TIM_HandleTypeDef htim2;
 extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN EV */
 
@@ -229,10 +234,12 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 0 */
   HAL_CAN_IRQHandler(&hcan);
   /* USER CODE BEGIN USB_LP_CAN1_RX0_IRQn 1 */
-  /************************************************************************************************
-  	 CAN_HIGH_SPEED RX INTERRUPT HANDLING
-  	 ************************************************************************************************/
-  	CanSaveReceivedData(hcan, &can_rx_frame_template);
+
+  /* Receive CAN frame procedure */
+  CanClearRxDataFrame(&can_rx_frame_template);
+  CanSaveReceivedData(hcan, &can_rx_frame_template);
+  GetRawData(&current_data, &can_rx_frame_template);
+
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 1 */
 }
 
@@ -263,6 +270,20 @@ void CAN1_SCE_IRQHandler(void)
   /* USER CODE BEGIN CAN1_SCE_IRQn 1 */
 
   /* USER CODE END CAN1_SCE_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  /* USER CODE END TIM2_IRQn 1 */
 }
 
 /**

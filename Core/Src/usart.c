@@ -21,6 +21,9 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
+#include "current_sensor.h"
+#include "battery_pack.h"
+
 char rx_buffer[128] = "";
 
 bq_pack battery_pack;
@@ -125,8 +128,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART1)
 	{
-		BqPack_StructUpdate(&battery_pack, rx_buffer);
-		// here update struct with data from current sensor
+		/* Manage battery pack */
+		BqPack_StructUpdate_MSP430(&battery_pack, rx_buffer);
+		BqPack_StructUpdate_CurrSensor(&battery_pack, &current_data);
+		BqPack_RecalculateData(&battery_pack);
+
+		/* Check for errors and send message about them */
+		BqPack_CheckForErrors(&battery_pack);
+
+		/* Create a frame based on that*/
+
+		/* Send a frame */
+
+		/* Restart Uart */
 		HAL_UART_Receive_IT(&huart1, (uint8_t*)rx_buffer, sizeof(rx_buffer));
 	}
 }

@@ -32,12 +32,11 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "battery_pack.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-extern bq_pack battery_pack;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

@@ -26,7 +26,7 @@ Core/Src/current_sensor.o: ../Core/Src/current_sensor.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/can.h ../Core/Inc/main.h ../Core/Inc/battery_pack.h
+ ../Core/Inc/can.h ../Core/Inc/main.h ../Core/Inc/can.h
 
 ../Core/Inc/current_sensor.h:
 
@@ -86,4 +86,4 @@ Core/Src/current_sensor.o: ../Core/Src/current_sensor.c \
 
 ../Core/Inc/main.h:
 
-../Core/Inc/battery_pack.h:
+../Core/Inc/can.h:
