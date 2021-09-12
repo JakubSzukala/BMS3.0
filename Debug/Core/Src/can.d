@@ -26,7 +26,9 @@ Core/Src/can.o: ../Core/Src/can.c ../Core/Inc/can.h ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
+ ../Core/Inc/battery_pack.h ../Core/Inc/current_sensor.h \
+ ../Core/Inc/can.h
 
 ../Core/Inc/can.h:
 
@@ -87,3 +89,9 @@ Core/Src/can.o: ../Core/Src/can.c ../Core/Inc/can.h ../Core/Inc/main.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+
+../Core/Inc/battery_pack.h:
+
+../Core/Inc/current_sensor.h:
+
+../Core/Inc/can.h:

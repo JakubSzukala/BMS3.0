@@ -18,11 +18,36 @@ uint8_t error_flag;
 
 void BqPack_StructInit(bq_pack *pack)
 {
-	pack -> voltage = 0;
-	pack -> temperature1 = 0;
-	pack -> temperature2 = 0;
-	pack -> lowest_cell_volts = 0;
-	pack -> highest_cell_volts = 0;
+	pack -> voltage = 100000;
+	pack -> temperature[0] = 30;
+	pack -> temperature[1] = 40;
+	pack -> temperature[2] = 50;
+	pack -> temperature[3] = 30;
+	pack -> temperature[4] = 30;
+	pack -> temperature[5] = 30;
+	pack -> temperature[6] = 30;
+	pack -> temperature[7] = 30;
+	pack -> temperature[8] = 30;
+	pack -> temperature[9] = 30;
+	pack -> temperature[10] = 30;
+	pack -> temperature[11] = 30;
+
+	pack->cell_voltages[0] = 3200;
+	pack->cell_voltages[1] = 4000;
+	for(uint8_t i = 2; i < NUM_OF_CELLS ; i++)
+	{
+		pack->cell_voltages[i] = 3500;
+	}
+
+	pack->warnings = 0;
+
+	pack->current = 2200;
+	pack->power = 4000;
+	pack->avg_temperature = 3500;
+	pack->charge_level = 100;
+
+	pack -> lowest_cell_volts = 3200;
+	pack -> highest_cell_volts = 4000;
 	pack -> op_mode = 0;
 }
 
@@ -36,7 +61,18 @@ void BqPack_RecalculateData(bq_pack *pack)
 {
 	pack->power = pack->current * pack->voltage;
 	pack->charge_level = 0;
-	pack->avg_temperature = (pack->temperature1 + pack->temperature2)/2;
+	pack->avg_temperature = (	pack->temperature[0] +
+								pack->temperature[1] +
+								pack->temperature[2] +
+								pack->temperature[3] +
+								pack->temperature[4] +
+								pack->temperature[5] +
+								pack->temperature[6] +
+								pack->temperature[7] +
+								pack->temperature[8] +
+								pack->temperature[9] +
+								pack->temperature[10]+
+								pack->temperature[11])/12;
 }
 
 
@@ -60,7 +96,7 @@ void BqPack_StructUpdate_MSP430(bq_pack *pack, char *control)
 		uint16_t temp = (uint16_t)strtol(data, NULL, 0);
 		if(temp)
 		{
-			pack -> temperature1 = temp;
+			//pack -> temperature1 = temp;
 		}
 	}
 
@@ -70,7 +106,7 @@ void BqPack_StructUpdate_MSP430(bq_pack *pack, char *control)
 		uint16_t temp = (uint16_t)strtol(data, NULL, 0);
 		if(temp)
 		{
-			pack -> temperature2 = temp;
+			//pack -> temperature2 = temp;
 		}
 	}
 
@@ -114,10 +150,14 @@ uint8_t BqPack_CheckForErrors(bq_pack *pack)
 		return error_flag;
 	}
 
-	error_flag = TemperatureErrorCheck(&pack->temperature1, &pack->temperature2);
+	error_flag = TemperatureErrorCheck(&battery_pack.temperature);
 	if(error_flag != BqPack_OK)
 	{
-		uint8_t htemp = (pack->temperature1 > pack->temperature2) ? pack->temperature1 : pack->temperature2;
+		uint8_t htemp = 0;
+		for(uint8_t i = 0; i < 12 ; i++)
+		{
+			if(htemp < battery_pack.temperature[i]) htemp = battery_pack.temperature[i];
+		}
 		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error_flag, (uint8_t)htemp + 30, 0, 0, 0, 0, 0, 0);
 		return error_flag;
 	}
@@ -140,10 +180,13 @@ BqPack_Error_Status VoltageErrorCheck(uint32_t *voltage)
 	return BqPack_OK;
 }
 
-BqPack_Error_Status TemperatureErrorCheck(uint16_t *t1, uint16_t *t2)
+BqPack_Error_Status TemperatureErrorCheck(uint8_t (*temperature)[12])
 {
-	if(*t1 > HIGHTEMP_ERR || *t2 > HIGHTEMP_ERR) 	return BqPack_ErrHT;
-	if(*t1 < LOWTEMP_ERR || *t2 < LOWTEMP_ERR) 		return BqPack_ErrLT;
+	for(uint8_t i = 0; i < 12; i++)
+	{
+		if(*temperature[i] > HIGHTEMP_ERR) return BqPack_ErrHT;
+		if(*temperature[i] < LOWTEMP_ERR) return BqPack_ErrLT;
+	}
 
 	return BqPack_OK;
 }
@@ -158,12 +201,16 @@ BqPack_Error_Status VoltageDiffErrorCheck(uint16_t *voltage1, uint16_t *voltage2
 void BqPack_CheckForWarnings(bq_pack *pack)
 {
 	pack->warnings += VoltageWarningCheck(&pack->voltage);
-	pack->warnings += TemperatureWarningCheck(&pack->temperature1, &pack->temperature2);
+	pack->warnings += TemperatureWarningCheck(&pack->temperature);
 	pack->warnings += VoltageDiffErrorCheck(&pack->highest_cell_volts, &pack->lowest_cell_volts);
 
 	if(pack->warnings != 0)
 	{
-		uint8_t htemp = (pack->temperature1 > pack->temperature2) ? pack->temperature1 : pack->temperature2;
+		uint8_t htemp = 0;
+		for(uint8_t i = 0; i < 12 ; i++)
+		{
+			if(htemp < battery_pack.temperature[i]) htemp = battery_pack.temperature[i];
+		}
 		uint8_t volt_diff = abs(pack->highest_cell_volts - pack->lowest_cell_volts);
 		CanSendPdo(hcan, 0x86, 8, &can_frame_template, pack->warnings, (uint8_t)(pack->voltage/1000), htemp, volt_diff, 0, 0, 0, 0);
 	}
@@ -177,10 +224,13 @@ uint8_t VoltageWarningCheck(uint32_t *voltage)
 	return 0;
 }
 
-uint8_t TemperatureWarningCheck(uint16_t *t1, uint16_t *t2)
+uint8_t TemperatureWarningCheck(uint8_t (*temperature)[12])
 {
-	if(*t1 > HIGHTEMP_WARN || *t2 > HIGHTEMP_WARN) 	return pow(2, 2);
-	if(*t1 < LOWTEMP_WARN || *t2 < LOWTEMP_WARN) 	return pow(2, 3);
+	for(uint8_t i = 0; i < 12; i++)
+	{
+		if(*temperature[i] > HIGHTEMP_WARN) return pow(2, 2);
+		if(*temperature[i] < LOWTEMP_WARN) return pow(2, 3);
+	}
 	return 0;
 }
 

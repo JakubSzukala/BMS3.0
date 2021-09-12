@@ -135,7 +135,7 @@ int main(void)
 	HAL_ADC_PollForConversion(&hadc1, 10);
 	raw = HAL_ADC_GetValue(&hadc1);
 	calculated = (uint16_t)((3300.0 / 4095.0) * raw);
-	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 	HAL_Delay(500);
     /* USER CODE END WHILE */
 

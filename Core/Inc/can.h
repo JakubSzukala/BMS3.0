@@ -43,6 +43,7 @@ extern CAN_HandleTypeDef hcan;
 #define PRE_OPERATIONAL_STATE	0x80
 #define RESET_APPLICATION		0x81
 #define RESET_COMMUNICATION		0x82
+#define NUMBER_OF_SEND_FUNC		7
 
 #define SDO_UPLOAD   0b00100000
 #define SDO_DOWNLOAD 0b01000000
@@ -59,11 +60,12 @@ typedef struct {
 
 // create an instance of that in init function
 typedef void (*pt2SendFunctions)(void);
-extern pt2SendFunctions send_functions[7]; // + stop timer function
+extern pt2SendFunctions send_functions[NUMBER_OF_SEND_FUNC]; // + stop timer function
 
 extern CanDataFrameInit can_frame_template;
 extern CanDataFrameInit can_rx_frame_template;
 
+void Decimal2Hex(char (*hex)[5], uint16_t decimal);
 
 /* can peripherial initialization */
 void CanInit(CAN_HandleTypeDef hcanx);
@@ -97,7 +99,9 @@ void SendCellVoltages1_8();
 void SendCellVoltages9_16();
 void SendCellVoltages17_24();
 void SendCellVoltages25_28();
-void SendCellVoltagePackCurrent();
+void SendTotalVoltageCurrentTemperatures();
+void SendTemperatures();
+void SendGeneralInfo();
 
 /* USER CODE END Private defines */
 

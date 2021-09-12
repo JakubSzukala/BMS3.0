@@ -19,6 +19,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
+#include "battery_pack.h"
+
 
 /* USER CODE BEGIN 0 */
 /************************************************************************************************
@@ -29,8 +31,10 @@ CAN_FilterTypeDef can_filter_template;
 CAN_RxHeaderTypeDef can_rx_header;
 uint8_t can_rx_data[8];
 CanDataFrameInit can_rx_frame_template;
-
 uint32_t can_tx_mailbox;
+
+pt2SendFunctions send_functions[NUMBER_OF_SEND_FUNC];
+bq_pack battery_pack;
 
 /* Includes */
 //#include "current_sensor.h"
@@ -84,8 +88,9 @@ void MX_CAN_Init(void)
   send_functions[1] = &SendCellVoltages9_16;
   send_functions[2] = &SendCellVoltages17_24;
   send_functions[3] = &SendCellVoltages25_28;
-  send_functions[4] = &SendCellVoltagePackCurrent;
-
+  send_functions[4] = &SendTotalVoltageCurrentTemperatures;
+  send_functions[5] = &SendTemperatures;
+  send_functions[6] = &SendGeneralInfo;
   // __HAL_TIM_DISABLE(htim);
   /* USER CODE END CAN_Init 2 */
 
@@ -401,37 +406,125 @@ void CanClearRxDataFrame(CanDataFrameInit *ptr_can_frame_template) {
 /* Interrupt callbacks*/
 HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-	CanClearRxDataFrame(&can_rx_frame_template);
-	CanSaveReceivedData(*hcan, &can_rx_frame_template);
-	GetRawData(&current_data, &can_rx_frame_template);
+//	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+//	CanClearRxDataFrame(&can_rx_frame_template);
+//	CanSaveReceivedData(*hcan, &can_rx_frame_template);
+//	GetRawData(&current_data, &can_rx_frame_template);
 }
 
 void SendCellVoltages1_8()
 {
-
+	// (Vb - 1850)/10
+	CanSendPdo(hcan, 0x185, 8, &can_frame_template,
+			(battery_pack.cell_voltages[0] - 1850)/10,
+			(battery_pack.cell_voltages[1] - 1850)/10,
+			(battery_pack.cell_voltages[2] - 1850)/10,
+			(battery_pack.cell_voltages[3] - 1850)/10,
+			(battery_pack.cell_voltages[4] - 1850)/10,
+			(battery_pack.cell_voltages[5] - 1850)/10,
+			(battery_pack.cell_voltages[6] - 1850)/10,
+			(battery_pack.cell_voltages[7] - 1850)/10);
 }
 void SendCellVoltages9_16()
 {
-
+	CanSendPdo(hcan, 0x186, 8, &can_frame_template,
+				(battery_pack.cell_voltages[8] - 1850)/10,
+				(battery_pack.cell_voltages[9] - 1850)/10,
+				(battery_pack.cell_voltages[10] - 1850)/10,
+				(battery_pack.cell_voltages[11] - 1850)/10,
+				(battery_pack.cell_voltages[12] - 1850)/10,
+				(battery_pack.cell_voltages[13] - 1850)/10,
+				(battery_pack.cell_voltages[14] - 1850)/10,
+				(battery_pack.cell_voltages[15] - 1850)/10);
 }
 void SendCellVoltages17_24()
 {
-
+	CanSendPdo(hcan, 0x187, 8, &can_frame_template,
+					(battery_pack.cell_voltages[16] - 1850)/10,
+					(battery_pack.cell_voltages[17] - 1850)/10,
+					(battery_pack.cell_voltages[18] - 1850)/10,
+					(battery_pack.cell_voltages[19] - 1850)/10,
+					(battery_pack.cell_voltages[20] - 1850)/10,
+					(battery_pack.cell_voltages[21] - 1850)/10,
+					(battery_pack.cell_voltages[22] - 1850)/10,
+					(battery_pack.cell_voltages[23] - 1850)/10);
 }
 void SendCellVoltages25_28()
 {
+	CanSendPdo(hcan, 0x188, 8, &can_frame_template,
+					(battery_pack.cell_voltages[24] - 1850)/10,
+					(battery_pack.cell_voltages[25] - 1850)/10,
+					(battery_pack.cell_voltages[26] - 1850)/10,
+					(battery_pack.cell_voltages[27] - 1850)/10,
+					0,
+					0,
+					0,
+					0);
+}
+void SendTotalVoltageCurrentTemperatures()
+{
+	// voltage coding V / 100 (V is in mV) 100 0
+
+	uint16_t voltage = battery_pack.voltage/100;
+	CanSendPdo(hcan, 0x189, 8, &can_frame_template,
+					(0xFF00 & voltage) >> 8,
+					(0x00FF & voltage),
+					0,
+					0,
+					battery_pack.temperature[0] + 30,
+					battery_pack.temperature[1] + 30,
+					battery_pack.temperature[2] + 30,
+					battery_pack.temperature[3] + 30);
 
 }
-void SendCellVoltagePackCurrent()
-{
 
+void SendTemperatures()
+{
+	CanSendPdo(hcan, 0x18A, 8, &can_frame_template,
+					battery_pack.temperature[4] + 30,
+					battery_pack.temperature[5] + 30,
+					battery_pack.temperature[6] + 30,
+					battery_pack.temperature[7] + 30,
+					battery_pack.temperature[8] + 30,
+					battery_pack.temperature[9] + 30,
+					battery_pack.temperature[10] + 30,
+					battery_pack.temperature[11] + 30);
+}
+
+void SendGeneralInfo()
+{
+	CanSendPdo(hcan, 0x18B, 8, &can_frame_template,
+						(0xFF000000 & battery_pack.power) >> 24,
+						(0x00FF0000 & battery_pack.power) >> 16,
+						0, // charge level
+						battery_pack.avg_temperature + 30,
+						0,
+						0,
+						0,
+						0);
+}
+
+void Decimal2Hex(char (*hex)[5], uint16_t decimal)
+{
+	uint16_t quotient, remainder;
+	uint8_t j = 0;
+
+	quotient = decimal;
+
+	char hexadecimal[5];
+
+	while(quotient != 0)
+	{
+		remainder = quotient % 16;
+		if (remainder < 10)
+			hexadecimal[j++] = 48 + remainder;
+		else
+			hexadecimal[j++] = 55 + remainder;
+		quotient = quotient / 16;
+	}
+	hex = &hexadecimal;
 }
 
 /* USER CODE END 1 */
-
-/* Send functions */
-
-
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

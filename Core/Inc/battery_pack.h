@@ -15,19 +15,22 @@
 #include "current_sensor.h"
 
 /* Constants */
+#define NUM_OF_TEMPS 12
+#define NUM_OF_CELLS 28
+
 /* Errors levels*/
-#define OVERVOLTAGE_ERR 120
-#define UNDERVOLTAGE_ERR 82
+#define OVERVOLTAGE_ERR 120000
+#define UNDERVOLTAGE_ERR 82000
 #define HIGHTEMP_ERR 55
 #define LOWTEMP_ERR 0
-#define BAL_ERR 0.5
+#define BAL_ERR 500
 
 /* Warnings levels */
-#define OVERVOLTAGE_WARN 117.5
-#define UNDERVOLTAGE_WARN 83
+#define OVERVOLTAGE_WARN 117500
+#define UNDERVOLTAGE_WARN 83000
 #define HIGHTEMP_WARN 45
 #define LOWTEMP_WARN 5
-#define BAL_WARN 0.1
+#define BAL_WARN 100
 
 /* Errors / warnings IDs */
 typedef enum{
@@ -47,13 +50,12 @@ typedef enum{
 typedef struct BQ_PACK
 {
 	uint32_t voltage;
-	uint16_t temperature1;
-	uint16_t temperature2;
+	uint8_t temperature[NUM_OF_TEMPS];
 	uint16_t lowest_cell_volts;
 	uint16_t highest_cell_volts;
 	uint8_t op_mode;
 
-	uint16_t cell_voltages[29];
+	uint16_t cell_voltages[NUM_OF_CELLS];
 
 	uint16_t warnings;
 	uint16_t error;
@@ -78,10 +80,10 @@ void BqPack_RecalculateData(bq_pack *pack);
 uint8_t BqPack_CheckForErrors(bq_pack *pack);
 void BqPack_CheckForWarnings(bq_pack *pack);
 BqPack_Error_Status VoltageErrorCheck(uint32_t *voltage);
-BqPack_Error_Status TemperatureErrorCheck(uint16_t *t1, uint16_t *t2);
+BqPack_Error_Status TemperatureErrorCheck(uint8_t (*temperature)[12]);
 BqPack_Error_Status VoltageDiffErrorCheck(uint16_t *voltage1, uint16_t *voltage2);
 uint8_t VoltageWarningCheck(uint32_t *voltage);
-uint8_t TemperatureWarningCheck(uint16_t *t1, uint16_t *t2);
+uint8_t TemperatureWarningCheck(uint8_t (*temperature)[12]);
 uint8_t VoltageDiffWarningCheck(uint16_t *voltage1, uint16_t *voltage2);
 
 
