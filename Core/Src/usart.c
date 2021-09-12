@@ -136,10 +136,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 		/* Errors */
 		BqPack_CheckForErrors(&battery_pack);
-		BqPack_CheckForWarnings(&battery_pack);
-
-		/* Regular messages */
-
+		// break if  error flag is set
+		if(error_flag != 0)
+		{
+			BqPack_CheckForWarnings(&battery_pack);
+		}
 
 		/* Restart Uart */
 		HAL_UART_Receive_IT(&huart1, (uint8_t*)rx_buffer, sizeof(rx_buffer));

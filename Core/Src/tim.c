@@ -26,6 +26,7 @@
 #include "can.h"
 
 uint8_t counter = 0;
+uint8_t charging_flag;
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -46,9 +47,9 @@ void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 4;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 47999;
+  htim1.Init.Period = 20000-1;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -186,12 +187,33 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM1)
 	{
-		(*send_functions[counter])();
-		counter++;
-		if(counter >= NUMBER_OF_SEND_FUNC)
+
+		if(charging_flag)
 		{
-			counter = 0;
-			//HAL_TIM_Base_Stop_IT(htim);
+			//if charging, send all less frequently 30 ms
+			if(htim->Instance->ARR == 19999)
+			{
+				__HAL_TIM_SET_AUTORELOAD(htim, 59999);
+			}
+
+			(*send_functions[counter])();
+			counter++;
+
+			if(counter >= NUMBER_OF_SEND_FUNC)
+			{
+				counter = 0;
+			}
+		}
+		else
+		{
+			// if not charging send faster and only 1 message 10ms
+			if(htim->Instance->ARR == 59999)
+			{
+				__HAL_TIM_SET_AUTORELOAD(htim, 19999);
+			}
+
+			/* When vehicle is driving send only general informations */
+			(*send_functions[6])();
 		}
 	}
 

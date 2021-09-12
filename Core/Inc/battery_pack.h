@@ -68,7 +68,10 @@ typedef struct BQ_PACK
 }bq_pack;
 
 extern bq_pack battery_pack;
+/* System state global flags */
 extern uint8_t error_flag;
+extern uint8_t charging_flag;
+
 /* Functions declarations */
 /* Structure updates */
 void BqPack_StructInit(bq_pack *pack);

@@ -19,13 +19,13 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
-#include "battery_pack.h"
-
 
 /* USER CODE BEGIN 0 */
 /************************************************************************************************
  GLOBAL VARIABLES
  ************************************************************************************************/
+#include "battery_pack.h"
+
 CanDataFrameInit can_frame_template;
 CAN_FilterTypeDef can_filter_template;
 CAN_RxHeaderTypeDef can_rx_header;
@@ -403,15 +403,8 @@ void CanClearRxDataFrame(CanDataFrameInit *ptr_can_frame_template) {
 	ptr_can_frame_template->rx_data[6] = 0x0;
 	ptr_can_frame_template->rx_data[7] = 0x0;
 }
-/* Interrupt callbacks*/
-HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-//	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-//	CanClearRxDataFrame(&can_rx_frame_template);
-//	CanSaveReceivedData(*hcan, &can_rx_frame_template);
-//	GetRawData(&current_data, &can_rx_frame_template);
-}
 
+/* Sending functions */
 void SendCellVoltages1_8()
 {
 	// (Vb - 1850)/10

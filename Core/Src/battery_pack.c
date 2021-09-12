@@ -13,7 +13,6 @@
 CanDataFrameInit can_frame_template;
 
 /* Global variables */
-queue_t Fifo_Queue;
 uint8_t error_flag;
 
 void BqPack_StructInit(bq_pack *pack)
@@ -24,7 +23,7 @@ void BqPack_StructInit(bq_pack *pack)
 	pack -> temperature[2] = 50;
 	pack -> temperature[3] = 30;
 	pack -> temperature[4] = 30;
-	pack -> temperature[5] = 30;
+	pack -> temperature[5] = 220;
 	pack -> temperature[6] = 30;
 	pack -> temperature[7] = 30;
 	pack -> temperature[8] = 30;
@@ -49,6 +48,10 @@ void BqPack_StructInit(bq_pack *pack)
 	pack -> lowest_cell_volts = 3200;
 	pack -> highest_cell_volts = 4000;
 	pack -> op_mode = 0;
+
+	/* Init global flags */
+	error_flag = 0;
+	charging_flag = 1;
 }
 
 void BqPack_StructUpdate_CurrSensor(bq_pack *pack, CurrentData *control)
