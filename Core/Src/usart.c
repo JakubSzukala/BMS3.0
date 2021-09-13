@@ -137,7 +137,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		/* Errors */
 		BqPack_CheckForErrors(&battery_pack);
 		// break if  error flag is set
-		if(error_flag != 0)
+		if(GetErrorFlag() == 0)
 		{
 			BqPack_CheckForWarnings(&battery_pack);
 		}

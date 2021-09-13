@@ -14,6 +14,7 @@ CanDataFrameInit can_frame_template;
 
 /* Global variables */
 uint8_t error_flag;
+uint8_t vehicle_active_flag;
 
 void BqPack_StructInit(bq_pack *pack)
 {
@@ -52,6 +53,7 @@ void BqPack_StructInit(bq_pack *pack)
 	/* Init global flags */
 	error_flag = 0;
 	charging_flag = 1;
+	vehicle_active_flag = 0;
 }
 
 void BqPack_StructUpdate_CurrSensor(bq_pack *pack, CurrentData *control)
@@ -81,98 +83,110 @@ void BqPack_RecalculateData(bq_pack *pack)
 
 void BqPack_StructUpdate_MSP430(bq_pack *pack, char *control)
 {
-	char *data;
+	char *ptr = control + 1;
 
-	data = strtok(control, ";");
-	if(data != NULL)
+	// voltages read
+	if(*control == 'V')
 	{
-		uint32_t temp = (uint32_t)strtol(data, NULL, 0);
-		if(temp)
+		for(uint8_t i = 0; i < NUM_OF_CELLS; i++)
 		{
-			pack -> voltage = temp;
+			char *data;
+			data = strtok(ptr, ";");
+			if(data != NULL)
+			{
+				uint32_t temp = (uint32_t)strtol(data, NULL, 0);
+				if(temp)
+				{
+					pack->cell_voltages[i] = temp;
+				}
+			}
 		}
 	}
 
-	data = strtok(NULL, ";");
-	if(data != NULL)
+	if(*control == 'T')
 	{
-		uint16_t temp = (uint16_t)strtol(data, NULL, 0);
-		if(temp)
+		for(uint8_t i = 0; i < NUM_OF_TEMPS; i++)
 		{
-			//pack -> temperature1 = temp;
+			char *data;
+			data = strtok(ptr, ";");
+			if(data != NULL)
+			{
+				uint32_t temp = (uint32_t)strtol(data, NULL, 0);
+				if(temp)
+				{
+					pack->temperature[i] = temp;
+				}
+			}
 		}
 	}
-
-	data = strtok(NULL, ";");
-	if(data != NULL)
+	if(*control == 'G')
 	{
-		uint16_t temp = (uint16_t)strtol(data, NULL, 0);
-		if(temp)
+		char *data;
+		data = strtok(ptr, ";");
+		if(data != NULL)
 		{
-			//pack -> temperature2 = temp;
+			uint32_t temp = (uint32_t)strtol(data, NULL, 0);
+			if(temp)
+			{
+				pack->voltage = temp;
+			}
 		}
-	}
 
-	data = strtok(NULL, ";");
-	if(data != NULL)
-	{
-		uint16_t temp = (uint16_t)strtol(data, NULL, 0);
-		if(temp)
+		data = strtok(ptr, ";");
+		if(data != NULL)
 		{
-			pack -> lowest_cell_volts = temp;
+			uint32_t temp = (uint32_t)strtol(data, NULL, 0);
+			if(temp)
+			{
+				pack->highest_cell_volts = temp;
+			}
 		}
-	}
 
-	data = strtok(NULL, ";");
-	if(data != NULL)
-	{
-		uint16_t temp = (uint16_t)strtol(data, NULL, 0);
-		if(temp)
+		data = strtok(ptr, ";");
+		if(data != NULL)
 		{
-			pack -> highest_cell_volts = temp;
-		}
-	}
-
-	data = strtok(NULL, ";");
-	if(data != NULL)
-	{
-		uint16_t temp = (uint16_t)strtol(data, NULL, 0);
-		if(temp)
-		{
-			pack -> op_mode = temp;
+			uint32_t temp = (uint32_t)strtol(data, NULL, 0);
+			if(temp)
+			{
+				pack->lowest_cell_volts = temp;
+			}
 		}
 	}
 }
 
 uint8_t BqPack_CheckForErrors(bq_pack *pack)
 {
-	error_flag = VoltageErrorCheck(&(pack->voltage));
-	if(error_flag != BqPack_OK)
+	uint8_t error;
+	error = VoltageErrorCheck(&(pack->voltage));
+	if(error!= BqPack_OK)
 	{
-		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error_flag, (uint8_t)((pack->voltage)/1000), 0, 0, 0, 0, 0, 0);
-		return error_flag;
+		SetErrorFlag();
+		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error, (uint8_t)((pack->voltage)/1000), 0, 0, 0, 0, 0, 0);
+		return error;
 	}
 
-	error_flag = TemperatureErrorCheck(&battery_pack.temperature);
-	if(error_flag != BqPack_OK)
+	error = TemperatureErrorCheck(&battery_pack.temperature);
+	if(error != BqPack_OK)
 	{
+		SetErrorFlag();
 		uint8_t htemp = 0;
 		for(uint8_t i = 0; i < 12 ; i++)
 		{
 			if(htemp < battery_pack.temperature[i]) htemp = battery_pack.temperature[i];
 		}
-		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error_flag, (uint8_t)htemp + 30, 0, 0, 0, 0, 0, 0);
-		return error_flag;
+		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error, (uint8_t)htemp + 30, 0, 0, 0, 0, 0, 0);
+		return error;
 	}
 
-	error_flag = VoltageDiffErrorCheck(&pack->highest_cell_volts, &pack->lowest_cell_volts);
+	error = VoltageDiffErrorCheck(&pack->highest_cell_volts, &pack->lowest_cell_volts);
 	if(error_flag != BqPack_OK)
 	{
+		SetErrorFlag();
 		uint8_t volt_diff = abs(pack->highest_cell_volts - pack->lowest_cell_volts);
-		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error_flag, volt_diff, 0, 0, 0, 0, 0, 0);
-		return error_flag;
+		CanSendPdo(hcan, 0x85, 8, &can_frame_template, error, volt_diff, 0, 0, 0, 0, 0, 0);
+		return error;
 	}
-	return error_flag;
+	return error;
 }
 
 BqPack_Error_Status VoltageErrorCheck(uint32_t *voltage)
@@ -243,4 +257,23 @@ uint8_t VoltageDiffWarningCheck(uint16_t *voltage1, uint16_t *voltage2)
 	return 0;
 }
 
+void SetErrorFlag()
+{
+	// set a flag and immidiately turn off stycznik
+	error_flag = 1;
+	HAL_GPIO_WritePin(PWR_SWITCH_GPIO_Port, PWR_SWITCH_Pin, GPIO_PIN_RESET);
+}
+uint8_t GetErrorFlag()
+{
+	return error_flag;
+}
 
+void SetVehicleActiveFlag(uint8_t state)
+{
+	vehicle_active_flag = state;
+}
+
+uint8_t GetVehivleActivveFlag()
+{
+	return vehicle_active_flag;
+}

@@ -69,7 +69,8 @@ typedef struct BQ_PACK
 
 extern bq_pack battery_pack;
 /* System state global flags */
-extern uint8_t error_flag;
+uint8_t vehicle_active_flag;
+uint8_t error_flag;
 extern uint8_t charging_flag;
 
 /* Functions declarations */
@@ -88,6 +89,12 @@ BqPack_Error_Status VoltageDiffErrorCheck(uint16_t *voltage1, uint16_t *voltage2
 uint8_t VoltageWarningCheck(uint32_t *voltage);
 uint8_t TemperatureWarningCheck(uint8_t (*temperature)[12]);
 uint8_t VoltageDiffWarningCheck(uint16_t *voltage1, uint16_t *voltage2);
+
+void SetErrorFlag();
+uint8_t GetErrorFlag();
+void SetVehicleActiveFlag(uint8_t state);
+uint8_t GetVehivleActivveFlag();
+
 
 
 void check_warning_error_conditions(bq_pack *pack);

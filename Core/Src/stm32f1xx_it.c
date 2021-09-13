@@ -28,6 +28,7 @@
  ************************************************************************************************/
 #include "can.h"
 #include "current_sensor.h"
+#include "battery_pack.h"
 
 /* USER CODE END Includes */
 
@@ -48,6 +49,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+
 
 /* Global variable for storing current sensor data */
 CurrentData current_data;
@@ -239,7 +241,29 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
   /* Receive CAN frame procedure */
   CanClearRxDataFrame(&can_rx_frame_template);
   CanSaveReceivedData(hcan, &can_rx_frame_template);
-  GetRawData(&current_data, &can_rx_frame_template);
+
+  // check if we got the start vehicle frame and if it is safe to turn it on
+  if((can_rx_frame_template.rx_header.StdId == 0x0) && (can_rx_frame_template.rx_data[0] == 5))
+  {
+	  if(GetErrorFlag() == 0)
+	  {
+		  // activate stycznik
+		  SetVehicleActiveFlag(1);
+		  HAL_GPIO_WritePin(PWR_SWITCH_GPIO_Port, PWR_SWITCH_Pin, GPIO_PIN_SET);
+	  }
+  }
+
+  // check for frame from current sensor
+  if(can_rx_frame_template.rx_header.StdId == 0x55)
+  {
+	  GetRawData(&current_data, &can_rx_frame_template);
+  }
+
+  // check for frame charge / discharge
+  if(can_rx_frame_template.rx_header.StdId == 0xC)
+  {
+	  sadmfdas
+  }
 
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 1 */
 }
